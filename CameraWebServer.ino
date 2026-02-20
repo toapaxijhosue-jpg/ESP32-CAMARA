@@ -10,8 +10,8 @@ Codigo para programación ESP32 CAM con FT232-AZ USB to TTL serial adapter
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char *ssid = "Redmi_Dereck";
-const char *password = "DereckJTV";
+const char *ssid = "NOMBRE_WIFI";
+const char *password = "CONTRASEÑA_WIFI";
 
 void startCameraServer();
 void setupLedFlash();

@@ -1,3 +1,4 @@
+Codigo para programación ESP32 CAM con FT232-AZ USB to TTL serial adapter
 #include "esp_camera.h"
 #include <WiFi.h>
 

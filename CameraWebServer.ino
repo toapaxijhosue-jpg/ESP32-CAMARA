@@ -1,4 +1,3 @@
-Codigo para programación ESP32 CAM con FT232-AZ USB to TTL serial adapter
 #include "esp_camera.h"
 #include <WiFi.h>
 
@@ -10,8 +9,8 @@ Codigo para programación ESP32 CAM con FT232-AZ USB to TTL serial adapter
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char *ssid = "NOMBRE_WIFI";
-const char *password = "CONTRASEÑA_WIFI";
+const char *ssid = "CELERITY_DERECKSA";
+const char *password = "@ALAIA230519";
 
 void startCameraServer();
 void setupLedFlash();

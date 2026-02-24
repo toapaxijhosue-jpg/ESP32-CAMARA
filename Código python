@@ -1,0 +1,81 @@
+import cv2
+import numpy as np
+import os
+import urllib.request
+from ultralytics import YOLO
+
+# ==============================
+# CONFIGURACION
+# ==============================
+ESP32_STREAM_URL = "http://192.168.18.28:81/stream"
+MODEL_PATH = "modelo_senales_yolo.pt"
+MODEL_URL = "https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8n.pt"
+CONF_THRESHOLD = 0.4
+
+# ==============================
+# DESCARGAR MODELO SI NO EXISTE
+# ==============================
+if not os.path.exists(MODEL_PATH):
+    print("Descargando modelo YOLO...")
+    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+    print("Modelo descargado")
+
+# ==============================
+# CARGAR YOLO
+# ==============================
+model = YOLO(MODEL_PATH)
+
+# ==============================
+# CONEXION STREAM ESP32 (MJPEG)
+# ==============================
+stream = urllib.request.urlopen(ESP32_STREAM_URL)
+
+print("Conectado al ESP32-CAM")
+
+bytes_data = b""
+
+while True:
+    bytes_data += stream.read(1024)
+
+    a = bytes_data.find(b'\xff\xd8')  # inicio JPG
+    b = bytes_data.find(b'\xff\xd9')  # fin JPG
+
+    if a != -1 and b != -1:
+        jpg = bytes_data[a:b+2]
+        bytes_data = bytes_data[b+2:]
+
+        frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+
+        if frame is None:
+            continue
+
+        # ==============================
+        # YOLO DETECCION
+        # ==============================
+        results = model(frame, conf=CONF_THRESHOLD, verbose=False)
+
+        for r in results:
+            if r.boxes is None:
+                continue
+
+            for box in r.boxes:
+                cls = int(box.cls[0])
+                conf = float(box.conf[0])
+                label = model.names[cls]
+
+                if label in ["traffic light", "stop sign"]:
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,0), 2)
+                    cv2.putText(frame, f"{label} {conf:.2f}",
+                                (x1, y1-5),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                0.6,
+                                (0,255,0),
+                                2)
+
+        cv2.imshow("ESP32 YOLO", frame)
+
+    if cv2.waitKey(1) & 0xFF == 27:
+        break
+
+cv2.destroyAllWindows()
